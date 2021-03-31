@@ -1,5 +1,10 @@
+<!--
+ * @LastEditors: Vi
+ * @LastEditTime: 2021-03-31 22:55:58
+-->
 <template>
   <div>
+    <el-button type="primary" @click="add">添加</el-button>
     <el-button type="primary" @click="add">添加</el-button>
     <v-list @update="update"></v-list>
 
