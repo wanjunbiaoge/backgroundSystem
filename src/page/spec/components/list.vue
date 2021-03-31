@@ -1,0 +1,112 @@
+<template>
+  <div>
+    <el-table :data="list" style="width: 100%;margin-bottom: 20px;" row-key="id" border :tree-props="{children: 'children'}">
+      <el-table-column prop="id" label="规格编号">
+      </el-table-column>
+      <el-table-column prop="specsname" label="规格名称  ">
+      </el-table-column>
+      <el-table-column label="规格属性">
+        <template slot-scope="scope">
+          <div>
+            <el-tag v-for="item in scope.row.attrs" :key="item">{{item}}</el-tag>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态">
+        <template slot-scope="scope">
+          <el-button type="primary" v-if="scope.row.status==1">启 用</el-button>
+          <el-button type="info" v-else>禁 用</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <div>
+            <el-button type="primary" @click="update(scope.row.id)">编 辑</el-button>
+            <el-button type="danger" @click="del(scope.row.id)">删 除</el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!-- 分页 -->
+    <!--
+       total  总条数
+       page-size   每页展示多少条
+       @current-change  当页码发生变化
+     -->
+    <el-pagination background layout="prev, pager, next" :total='total' :page-size='size' @current-change="changePage">
+    </el-pagination>
+  </div>
+</template>
+<script>
+import { mapGetters, mapActions } from "vuex";
+import { specsDel } from "../../../utils/request";
+import { successAlert, warningAlert } from "../../../utils/alert";
+export default {
+  props: [],
+  components: {},
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapGetters({
+      list: "specs/list",//列表数据
+      total:'specs/total',//总条数
+      size: 'specs/size'//每页显示的条数
+    }),
+  },
+  methods: {
+    ...mapActions({
+      specsReqChangeList: "specs/reqChangeList",//请求列表数据
+      specsReqChangeTotal: 'specs/reqChangeTotal',//请求总条数
+      specsReqChangePage:'specs/reqChangePage'//修改当前页码
+    }),
+    cancel() {
+      this.info.isShow = false;
+      this.empty();
+    },
+    empty() {
+      this.form = {
+        roleid: 0,
+        username: "",
+        password: "",
+        status: 1,
+      };
+    },
+    del(id) { //删除
+      this.$confirm("确定删除吗？", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        specsDel({ id: id }).then((res) => {
+          if(res.data.code == 200 ){
+            successAlert(res.data.msg)
+            this.specsReqChangeList()//重新请求列表
+            this.specsReqChangeTotal()//重新请求总数
+          }else{
+            warningAlert(res.data.msg)
+          }
+        });
+      }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });;
+    },
+    update(uid){
+      this.$emit('update',uid)//带参数通知父组件做更新事情
+    },
+    changePage(e){//更改页数
+      this.specsReqChangePage(e),//修改当前页
+      this.specsReqChangeList();//重新请求数据
+    }
+  },
+  mounted() {
+    this.specsReqChangeList();//页面一进来请求列表数据
+    this.specsReqChangeTotal();//请求总数TOTAL
+  },
+};
+</script>
+<style scoped>
+</style>
